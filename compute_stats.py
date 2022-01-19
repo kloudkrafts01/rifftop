@@ -1,57 +1,39 @@
 #!python3
-
-import os
-import statistics as st
-import openpyxl as opx
 import pandas as pd
 
-from build_db import engine
+GLOBAL_ENTRIES_SET = set()
 
-results_excelpath = "top2020_RESULTS.xlsx"
+def process_entry_row(row):
 
-df_entries = pd.read_sql_table('entries',engine)
-df_albums = pd.read_sql_table('albums',engine,index_col='id')
-df_users = pd.read_sql_table('users',engine,index_col='id')
-df_genres = pd.read_sql_table('genres',engine,index_col='id')
+   row_filled = row.notna()
+   row_strip = row[row_filled == True]
+   length = row_strip.shape[0] - 1
+   # print(length)
 
-def compute_all_stats():
+   global GLOBAL_ALBUMS_SET
+   position = 1
+   username = row_strip[0]
 
-   entries = build_entries()
-   entries = format_entries(entries)
+   entry_list = []
 
-   print(entries.head(20))
+   for entry in row_strip[1:length+1]:
 
-   album_results = build_album_stats(entries)
-   album_results = format_album_results(album_results)
-   album_results.to_sql('album_stats', engine, if_exists='replace')
+      entry_slug = entry.lower().strip(" ")
+      GLOBAL_ENTRIES_SET.add(entry_slug)
+      score = 25*(length - position)/(length - 1) + 5
 
-   genre_stats = compute_genre_stats(album_results)
+      entry_list += {
+         'username': username,
+         'entry': entry_slug,
+         'position': position,
+         'score': score
+      },
 
-   full_entries = extend_entries(entries, album_results)
-   full_entries = compute_entry_stats(full_entries)
-   full_entries.to_sql('entry_stats', engine, if_exists='replace')
+      position += 1
 
-   user_genres, user_edgyness = compute_user_stats(full_entries)
-
-   # write it all to a big Excel
-   writer = pd.ExcelWriter(results_excelpath)
-   album_results.to_excel(writer, sheet_name='album_results')
-   full_entries.to_excel(writer, sheet_name='full_entries')
-   genre_stats.to_excel(writer, sheet_name='genre_stats')
-   user_genres.to_excel(writer, sheet_name='user_genres')
-   user_edgyness.to_excel(writer, sheet_name='user_edgyness')
-
-   writer.save()
-
-
-   # album_results.to_excel('top2020_album_results.xlsx')
-
-def build_entries():
-
-   entries = pd.merge(df_entries, df_albums, left_on='album_id', right_on='id')
-   entries = pd.merge(entries, df_genres, left_on='genre_id', right_on='id')
-
-   return entries
+   entry_df = pd.DataFrame(entry_list)
+   
+   return entry_df
 
 def format_entries(entries):
 
