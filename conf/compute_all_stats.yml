@@ -1,0 +1,105 @@
+TargetFile: full_stats.xlsx
+
+Tables:
+  - entries_processed.xlsx
+  - albums_list_complete.xlsx
+
+Steps:
+
+  - Step: MergeEntriesAlbums
+    type: merge_fields
+    input: entries_processed
+    right_input: albums_list_complete
+    output: entries_full
+    save: true
+    params:
+      left_key: entry
+
+  - Step: ComputeAlbumStats
+    type: group_compute
+    input: entries_full
+    output: albums_stats
+    params:
+      groupby:
+        - genre
+        - origin
+        - album
+      map:
+        position:
+          - mean
+          - min
+          - max
+        score:
+          - mean
+          - min
+          - max
+
+  - Step: FlattenAlbumsDF
+    type: flatten_index
+    input: album_stats
+    output: album_stats_flat
+    params:
+      column_map:
+        genre: genre
+        origin: origin
+        album: album
+        score|sum: total_score
+        score|count: nb_votes
+        score|mean: mean_score
+        score|max: highest_score
+        score|min: lowest_score
+        position|mean: mean_position
+        position|max: highest_position
+        position|min: lowest_position
+
+  - Step: GeneralRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking
+    params:
+      group_by: album
+      rank_by: score
+
+  - Step: MergeRanking
+    type: merge_fields
+    input: album_stats_flat
+    right_input: albums_ranking
+    output: album_stats_01
+    params:
+      left_key: album
+
+  - Step: GenreRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking_by_genre
+    params:
+      group_by: genre
+      rank_by: score
+
+  - Step: MergeGenreRanking
+    type: merge_fields
+    input: album_stats_01
+    right_input: albums_ranking_by_genre
+    output: album_stats_02
+    params:
+      left_key: album
+
+  - Step: OriginRanking
+    type: group_rank
+    input: album_stats_flat
+    output: albums_ranking_by_origin
+    params:
+      group_by: origin
+      rank_by: score
+
+  - Step: MergeOriginRanking
+    type: merge_fields
+    input: album_stats_02
+    right_input: albums_ranking_by_origin
+    output: album_stats_full
+    save: true
+    params:
+      left_key: album
+
+  
+  
