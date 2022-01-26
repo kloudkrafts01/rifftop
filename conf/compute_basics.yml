@@ -7,7 +7,7 @@ Tables:
 Steps:
 
   - Step: ProcessRawEntries
-    type: apply_func
+    type: apply_func_on_axis
     input: input
     output: user_entries_list
     params:

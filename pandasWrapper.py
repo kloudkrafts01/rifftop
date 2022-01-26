@@ -101,7 +101,15 @@ class PandasWrapper():
 
         return series
 
-    def apply_func(self,origin_df,func_name=None,axis=1,import_from='.'):
+    def apply_func_on_df(self,origin_df,func_name=None,import_from='.',**fargs):
+
+        module = import_module(name=import_from)
+        func = getattr(module,func_name)
+        df = func(origin_df,**fargs)
+
+        return df
+
+    def apply_func_on_axis(self,origin_df,func_name=None,axis=1,import_from='.'):
 
         module = import_module(name=import_from)
         func = getattr(module,func_name)
@@ -109,7 +117,7 @@ class PandasWrapper():
 
         return df
 
-    def merge_fields(self,origin_df,how='inner',left_key='Id',left_fields=None,right_df=None,right_key=None,right_fields=None,prefix=None):
+    def merge_fields(self,origin_df,how='inner',left_key='Id',left_index=False,left_fields=None,right_df=None,right_key=None,right_index=False,right_fields=None,prefix=None):
 
         map = {}
         base_df = origin_df
@@ -138,12 +146,12 @@ class PandasWrapper():
         joinparams = {
             'how': how
         }
-        if left_key == base_df.index.name:
+        if (left_index or (left_key == base_df.index.name)):
             joinparams['left_index'] = True
         else:
             joinparams['left_on'] = left_key
         
-        if right_key == extend_df.index.name:
+        if (right_index or (right_key == extend_df.index.name)):
             joinparams['right_index'] = True
         elif right_key is None:
             # if no right key is provided, join on the same key as left
@@ -173,21 +181,45 @@ class PandasWrapper():
 
         return df
 
-    def flatten_index(self,origin_df,separator="|",column_map={}):
+    def reindex(self,origin_df,**params):
 
-        df = origin_df
-        df.columns = df.columns.map('|'.join).str.strip('|')
-        df = df.reindex(columns=map.keys())
-
-        drop_cols = (x for x in df.columns if x not in map.keys())
-        df.drop(drop_cols, axis=1, inplace=True)
-        df.rename(map, axis=1, inplace=True)
+        df = origin_df.reindex(**params)
 
         return df
 
-    def group_rank(self,origin_df,group_by,rank_by,method='dense',ascending=False):
+    def rename_columns(self,origin_df,separator="|",column_map={},dropcolumns=False,flatten_columns=False):
 
-        df = origin_df.groupby(group_by).rank(method=method,ascending=ascending)[rank_by]
+        df = origin_df
+
+        if flatten_columns:
+            df.columns = df.columns.map(separator.join).str.strip(separator)
+            df = df.reindex(columns=column_map.keys())
+
+        if dropcolumns:
+            drop_cols = (x for x in df.columns if x not in column_map.keys())
+            df.drop(drop_cols, axis=1, inplace=True)
+        
+        df.rename(column_map, axis=1, inplace=True)
+
+        return df
+
+    def sort_values(self,origin_df,sort_by,**params):
+
+        df = origin_df.sort_values(sort_by,**params)
+        return df
+
+    def group_rank(self,origin_df,rank_by,name=None,group_by=None,method='dense',ascending=False):
+
+        if group_by:
+            series = origin_df.groupby(group_by).rank(method=method,ascending=ascending)[rank_by]
+        else:
+            series = origin_df.rank(method=method,ascending=ascending)[rank_by]
+
+        if name is None:
+            name = rank_by
+
+        df = pd.DataFrame({name: series})
+
         return df
 
     def add_datetimes(self,origin_df,datecol,dayfirst=True):
