@@ -45,9 +45,9 @@ def compute_vote_weight(df):
 def compute_score_weight(df,group_by=None,level=0):
 
    if group_by:
-      df['score_weight'] = df['total_score'] * 100.0 / df.groupby(by=group_by)['total_score'].sum()
+      df['score_weight'] = df['total_score'] * 100.0 / df.groupby(by=group_by).sum()['total_score']
    else:
-      df['score_weight'] = df['total_score'] * 100.0 / df.groupby(level=level)['total_score'].sum()
+      df['score_weight'] = df['total_score'] * 100.0 / df.groupby(level=level).sum()['total_score']
 
    return df
 
@@ -66,17 +66,3 @@ def compute_entry_stats(df):
    df['edgyness'] = df['top_size'] / df['pop_score']
 
    return df
-
-def compute_user_stats(full_entries):
-    
-   user_genres = pd.pivot_table(full_entries, index=['name'], columns=['genre'], values=['score'], aggfunc=['sum'])
-
-   aggfunc = {
-      'pop_score': 'sum',
-      'edgyness': 'mean'
-   }
-   user_edgyness = pd.pivot_table(full_entries, index = ['name'], values=['pop_score','edgyness'], aggfunc=aggfunc)
-
-   user_edgyness.sort_values(('edgyness'), ascending=False, inplace=True)
-
-   return user_genres,user_edgyness

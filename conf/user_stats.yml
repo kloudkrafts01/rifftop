@@ -1,8 +1,8 @@
-TargetFile: user_stats.xlsx
+TargetFile: full_user_stats.xlsx
 
 Tables:
   - entries_processed.xlsx
-  - albums_list_complete.xlsx
+  - albums_processed.xlsx
   - full_album_stats.xlsx
 
 Steps:
@@ -10,8 +10,9 @@ Steps:
   - Step: MergeEntriesAlbums
     type: merge_fields
     input: entries_processed
-    right_input: albums_list_complete
+    right_input: albums_processed
     output: entries_albums
+    save: true
     params:
       left_key: entry
       right_key: entry
@@ -23,6 +24,7 @@ Steps:
     input: entries_albums
     right_input: full_album_stats
     output: entries_01
+    save: true
     params:
       how: left
       left_key: album
@@ -52,7 +54,9 @@ Steps:
     params:
       import_from: compute_stats
       func_name: compute_score_weight
-      group_by: family
+      group_by: 
+        - username
+        - family
 
   - Step: ComputeUserStatsByFamily
     type: group_compute

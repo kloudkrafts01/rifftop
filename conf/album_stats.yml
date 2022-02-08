@@ -2,27 +2,18 @@ TargetFile: full_album_stats.xlsx
 
 Tables:
   - entries_processed.xlsx
-  - albums_list_complete.xlsx
-  - genres_list.xlsx
+  - albums_processed.xlsx
 
 Steps:
-
-  - Step: MergeAlbumFamilies
-    type: merge_fields
-    input: albums_list_complete
-    right_input: genres_list
-    output: albums_list_full
-    params:
-      left_key: genre
-      right_key: genre
 
   - Step: MergeEntriesAlbums
     type: merge_fields
     input: entries_processed
-    right_input: albums_list_full
+    right_input: albums_processed
     output: entries_full
     save: true
     params:
+      how: left
       left_key: entry
       right_key: entry
 

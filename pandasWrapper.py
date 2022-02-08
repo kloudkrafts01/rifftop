@@ -17,10 +17,10 @@ class PandasWrapper():
         self.target_file = os.path.join(DATA_FOLDER,target_filename)
         self.xlswriter = pd.ExcelWriter(self.target_file)
 
-    def load_xls_tables(self,file_list):
+    def load_xls_tables(self,file_list,folder=DATA_FOLDER):
         
         for filename in file_list:
-            filepath = os.path.join(DATA_FOLDER,filename)
+            filepath = os.path.join(folder,filename)
             tablename, extname = os.path.splitext(filename)
             print("Pandas loading file: {}".format(filepath))
             self.dataframes[tablename] = pd.read_excel(filepath)
@@ -38,7 +38,12 @@ class PandasWrapper():
     def apply_transforms(self,transforms):
 
         table_list = transforms['Tables']
-        self.load_xls_tables(table_list)
+        kwargs = {}
+
+        if 'Folder' in transforms.keys():
+            kwargs['folder'] = transforms['Folder']
+        
+        self.load_xls_tables(table_list,**kwargs)
 
         df = None
 
@@ -219,6 +224,12 @@ class PandasWrapper():
             name = rank_by
 
         df = pd.DataFrame({name: series})
+
+        return df
+
+    def deduplicate(self,origin_df,by=None):
+
+        df = origin_df.drop_duplicates(subset=by,keep='first')
 
         return df
 
