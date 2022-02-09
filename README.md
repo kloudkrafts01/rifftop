@@ -1,6 +1,6 @@
 # rifftop
 
-This is a simple DIY project, made to compute a Musical top out of Community votes on facebook communities.
+This is a simple DIY project, made to compute a Musical top out of Community votes on social networks.
 
 I am running with a couple of friends a FB group where we share and discuss music - mainly Metal and Rock. We wanted to have a "Albums of the Year" list that was representative of our Community, and that could be less linear and top-down than AOTY lists provided by certified curators like "mainstream" Metal media (Metal Hammer, Rock'n'Folk etc etc). Nothing wrong with these authoritative lists, we just wanted to have fun with more interesting statistics, and take it as a pretext to highlight interesting albums that would not get the stage from larger Media :)
 
