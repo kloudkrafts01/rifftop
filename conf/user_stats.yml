@@ -12,7 +12,6 @@ Steps:
     input: entries_processed
     right_input: albums_processed
     output: entries_albums
-    save: true
     params:
       left_key: entry
       right_key: entry
@@ -24,7 +23,6 @@ Steps:
     input: entries_albums
     right_input: full_album_stats
     output: entries_01
-    save: true
     params:
       how: left
       left_key: album
@@ -56,7 +54,6 @@ Steps:
       func_name: compute_score_weight
       group_by: 
         - username
-        - family
 
   - Step: ComputeUserStatsByFamily
     type: group_compute
